@@ -17,6 +17,7 @@ import {
   applyPlanarImagePresentation,
   createVTKImageDataFromImage,
   getDefaultImageVOIRange,
+  getDefaultImageVoiLut,
   updateVTKImageDataGeometryFromImage,
 } from '../../helpers/planarImageRendering';
 import type {
@@ -156,6 +157,9 @@ export class VtkImageMapperRenderPath
       actor: rendering.actor,
       defaultVOIRange: rendering.defaultVOIRange,
       defaultVOILUTFunction: rendering.currentImage?.voiLUTFunction,
+      defaultVOILUT: rendering.currentImage
+        ? getDefaultImageVoiLut(rendering.currentImage)
+        : undefined,
       props: {
         interpolationType: InterpolationType.LINEAR,
         ...dataPresentation,
@@ -419,6 +423,7 @@ async function updateRenderedImage(args: {
     actor,
     defaultVOIRange: rendering.defaultVOIRange,
     defaultVOILUTFunction: image.voiLUTFunction,
+    defaultVOILUT: getDefaultImageVoiLut(image),
     props: {
       interpolationType:
         dataPresentation?.interpolationType ?? InterpolationType.LINEAR,

@@ -5,7 +5,10 @@ import calculateTransform from '../../helpers/cpuFallback/rendering/calculateTra
 import canvasToPixel from '../../helpers/cpuFallback/rendering/canvasToPixel';
 import correctShift from '../../helpers/cpuFallback/rendering/correctShift';
 import getDefaultViewport from '../../helpers/cpuFallback/rendering/getDefaultViewport';
-import { getDefaultImageVOIRange } from '../../helpers/planarImageRendering';
+import {
+  getDefaultImageVOIRange,
+  getDefaultImageVoiLut,
+} from '../../helpers/planarImageRendering';
 import resizeEnabledElement from '../../helpers/cpuFallback/rendering/resize';
 import drawImageSync from '../../helpers/cpuFallback/drawImageSync';
 import { resolveCPUFallbackColormap } from '../../helpers/cpuFallback/colors';
@@ -426,6 +429,14 @@ function applyDataPresentation(
       voiLUTFunction: enabledElement.image?.voiLUTFunction,
     };
   }
+
+  // tabular VOI LUT: the CPU rendering pipeline applies viewport.voiLUT
+  // natively (getVOILut); an explicit voiRange request abandons the default
+  viewport.voiLUT =
+    props?.voiLUT ??
+    (props?.voiRange || !enabledElement.image
+      ? undefined
+      : getDefaultImageVoiLut(enabledElement.image));
 
   rendering.renderingInvalidated = true;
 

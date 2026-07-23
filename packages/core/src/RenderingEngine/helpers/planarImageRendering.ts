@@ -4,9 +4,17 @@ import type vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import type vtkRenderer from '@kitware/vtk.js/Rendering/Core/Renderer';
 import { InterpolationType, VOILUTFunctionType } from '../../enums';
-import type { ColormapPublic, IImage, Point3, VOIRange } from '../../types';
+import type {
+  ColormapPublic,
+  IImage,
+  Point3,
+  VOILUT,
+  VOIRange,
+} from '../../types';
+import { getConfiguration } from '../../init';
 import createLinearRGBTransferFunction from '../../utilities/createLinearRGBTransferFunction';
 import createSigmoidRGBTransferFunction from '../../utilities/createSigmoidRGBTransferFunction';
+import createVoiLUTRGBTransferFunction from '../../utilities/createVoiLUTRGBTransferFunction';
 import getVOIRangeFromWindowLevel from '../../utilities/getVOIRangeFromWindowLevel';
 import isPTPrescaledWithSUV from '../../utilities/isPTPrescaledWithSUV';
 import { getImageDataMetadata } from '../../utilities/getImageDataMetadata';
@@ -29,6 +37,7 @@ export interface PlanarImagePresentation {
   colormap?: ColormapPublic;
   voiRange?: VOIRange;
   voiLUTFunction?: VOILUTFunctionType;
+  voiLUT?: VOILUT;
   invert?: boolean;
 }
 
@@ -141,6 +150,17 @@ export function getDefaultImageVOIRange(image: IImage): VOIRange | undefined {
   );
 }
 
+/**
+ * Returns the image's tabular VOI LUT as the default presentation only when
+ * the preferVoiLutFromMetadata config flag opts into it; window values win
+ * otherwise, matching the legacy StackViewport behavior.
+ */
+export function getDefaultImageVoiLut(image: IImage): VOILUT | undefined {
+  return getConfiguration().rendering?.preferVoiLutFromMetadata
+    ? image.voiLUT
+    : undefined;
+}
+
 export function getPlanarCameraState(renderer: vtkRenderer): PlanarCameraState {
   const camera = renderer.getActiveCamera();
 
@@ -157,11 +177,20 @@ export function applyPlanarImagePresentation(args: {
   actor: vtkImageSlice;
   defaultVOIRange?: VOIRange;
   defaultVOILUTFunction?: VOILUTFunctionType;
+  defaultVOILUT?: VOILUT;
   props?: PlanarImagePresentation;
 }): void {
-  const { actor, defaultVOIRange, defaultVOILUTFunction, props } = args;
+  const {
+    actor,
+    defaultVOIRange,
+    defaultVOILUTFunction,
+    defaultVOILUT,
+    props,
+  } = args;
   const property = actor.getProperty();
   const voiRange = props?.voiRange ?? defaultVOIRange;
+  // an explicit voiRange is a window request, which abandons the default LUT
+  const voiLUT = props?.voiLUT ?? (props?.voiRange ? undefined : defaultVOILUT);
 
   if (props?.visible !== undefined) {
     actor.setVisibility(props.visible);
@@ -179,7 +208,7 @@ export function applyPlanarImagePresentation(args: {
     );
   }
 
-  if (!voiRange) {
+  if (!voiRange && !voiLUT) {
     return;
   }
 
@@ -188,6 +217,7 @@ export function applyPlanarImagePresentation(args: {
     invert: props?.invert,
     voiRange,
     voiLUTFunction: props?.voiLUTFunction ?? defaultVOILUTFunction,
+    voiLUT,
   });
 
   property.setUseLookupTableScalarRange(true);
@@ -197,16 +227,19 @@ export function applyPlanarImagePresentation(args: {
 export function createPlanarRGBTransferFunction(args: {
   colormap?: ColormapPublic;
   invert?: boolean;
-  voiRange: VOIRange;
+  voiRange?: VOIRange;
   voiLUTFunction?: VOILUTFunctionType;
+  voiLUT?: VOILUT;
 }): vtkColorTransferFunction {
-  const { colormap, invert, voiRange, voiLUTFunction } = args;
+  const { colormap, invert, voiRange, voiLUTFunction, voiLUT } = args;
   const transferFunction =
-    colormap?.name !== undefined
+    colormap?.name !== undefined && voiRange
       ? createColormapTransferFunction(colormap, voiRange)
-      : voiLUTFunction === VOILUTFunctionType.SAMPLED_SIGMOID
-        ? createSigmoidRGBTransferFunction(voiRange)
-        : createLinearRGBTransferFunction(voiRange);
+      : voiLUT
+        ? createVoiLUTRGBTransferFunction(voiLUT)
+        : voiLUTFunction === VOILUTFunctionType.SAMPLED_SIGMOID
+          ? createSigmoidRGBTransferFunction(voiRange)
+          : createLinearRGBTransferFunction(voiRange);
 
   if (invert) {
     invertRgbTransferFunction(transferFunction);

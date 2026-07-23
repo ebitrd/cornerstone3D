@@ -755,7 +755,10 @@ class PlanarViewport extends GenericViewport<
     }
 
     const voiTouched =
-      'voiRange' in props || 'invert' in props || 'voiLUTFunction' in props;
+      'voiRange' in props ||
+      'invert' in props ||
+      'voiLUTFunction' in props ||
+      'voiLUT' in props;
     const colormapTouched = 'colormap' in props;
 
     if (!voiTouched && !colormapTouched) {
@@ -782,6 +785,7 @@ class PlanarViewport extends GenericViewport<
           range,
           volumeId,
           VOILUTFunction: props.voiLUTFunction ?? presentation?.voiLUTFunction,
+          voiLUT: props.voiLUT ?? presentation?.voiLUT,
           invert: props.invert ?? presentation?.invert,
           colormap: presentation?.colormap,
         });

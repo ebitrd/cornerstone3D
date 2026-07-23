@@ -193,6 +193,11 @@ export function mergePlanarLegacyProperties(
     merged.colormap = mergePlanarColormap(current.colormap, next.colormap);
   }
 
+  // an explicit window request abandons a previously applied tabular VOI LUT
+  if (next.voiRange && next.voiLUT === undefined) {
+    delete merged.voiLUT;
+  }
+
   return merged;
 }
 
@@ -207,6 +212,10 @@ export function toPlanarDataPresentation(
 
   if (properties.voiRange) {
     presentation.voiRange = cloneVOIRange(properties.voiRange);
+  }
+
+  if (properties.voiLUT !== undefined) {
+    presentation.voiLUT = properties.voiLUT;
   }
 
   if (properties.invert !== undefined) {

@@ -16,6 +16,7 @@ import type {
   OrientationVectors,
   Point2,
   Point3,
+  VOILUT,
   VOIRange,
 } from '../../../types';
 import type { ViewportInput } from '../../../types/IViewport';
@@ -121,6 +122,7 @@ export interface PlanarPresentationProps extends BasePresentationProps {
   colormap?: ColormapPublic;
   voiRange?: VOIRange;
   voiLUTFunction?: VOILUTFunctionType;
+  voiLUT?: VOILUT;
   invert?: boolean;
 }
 
