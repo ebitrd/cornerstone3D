@@ -49,6 +49,10 @@
         "name": "Stack Sigmoid LUT",
         "description": "Demonstrates the Sigmoid LUT Function instead of Linear"
       },
+      "stackVoiLut": {
+        "name": "Stack VOI LUT Sequence",
+        "description": "Demonstrates applying VOI LUTs (VOI LUT Sequence) on a Stack viewport and the fallback to windowing"
+      },
       "stackEvents": {
         "name": "Stack Viewport Events",
         "description": "Demonstrates the Events that are fired during interaction with a Stack Viewport"

@@ -51,7 +51,7 @@ interface Cornerstone3DConfig {
     strictZSpacingForVolumeViewport?: boolean;
 
     /**
-     * When an image carries a tabular VOI LUT (VOI LUT Sequence) in its
+     * When an image carries a VOI LUT Sequence in its
      * metadata, apply it as the default grayscale presentation instead of the
      * window width/center values. When false (default), window values win and
      * the LUT can still be applied explicitly via

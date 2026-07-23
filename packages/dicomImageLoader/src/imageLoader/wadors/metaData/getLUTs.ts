@@ -7,7 +7,7 @@ import getSequenceItems from './getSequenceItems';
  */
 interface LutDataElement {
   vr?: string;
-  Value?: number[];
+  Value?: (number | string)[];
   InlineBinary?: string;
   BulkDataURI?: string;
   retrieveBulkData?: () => Promise<ArrayBuffer | Uint8Array>;
@@ -111,7 +111,8 @@ function makeRetrieveLutData(
 
 function getLUT(
   pixelRepresentation: number,
-  item: LutSequenceItem
+  item: LutSequenceItem,
+  index: number
 ): WadoRsLutType | undefined {
   const descriptor = item['00283002']?.Value;
 
@@ -139,8 +140,12 @@ function getLUT(
     return;
   }
 
+  // LUT Explanation (0028,3003) gives the item a human-readable name
+  // (e.g. "NORMAL", "HARDER"); fall back to the 1-based item number
+  const explanation = item['00283003']?.Value?.[0];
+
   const lut: WadoRsLutType = {
-    id: '1',
+    id: typeof explanation === 'string' ? explanation : String(index + 1),
     firstValueMapped,
     numBitsPerEntry,
     lut: undefined,
@@ -189,8 +194,8 @@ function getLUTs(
   }
 
   const luts = items
-    .map((item) =>
-      getLUT(pixelRepresentation, item as unknown as LutSequenceItem)
+    .map((item, index) =>
+      getLUT(pixelRepresentation, item as unknown as LutSequenceItem, index)
     )
     .filter(Boolean);
 

@@ -16,14 +16,14 @@ export interface NormalizedVoiLut {
 }
 
 /**
- * Derives reliable display parameters from a tabular VOI LUT.
+ * Derives reliable display parameters from a VOI LUT (a VOI LUT Sequence item).
  *
  * The declared numBitsPerEntry of the LUT Descriptor is wrong in some vendor
  * data (entries stored at a smaller effective depth than declared), so the
  * effective bit depth is re-derived from the largest entry value, matching the
  * long-standing behavior of the CPU rendering path.
  *
- * @param voiLUT - Tabular VOI LUT (one VOI LUT Sequence item)
+ * @param voiLUT - VOI LUT (one VOI LUT Sequence item)
  * @returns Normalized parameters for building display lookup tables
  */
 export default function normalizeVoiLut(voiLUT: VOILUT): NormalizedVoiLut {

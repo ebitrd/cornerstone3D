@@ -61,7 +61,7 @@ interface VoiModifiedEventDetail {
   volumeId?: string;
   /** VOILUTFunction */
   VOILUTFunction?: VOILUTFunctionType;
-  /** Tabular VOI LUT in effect, if any */
+  /** VOI LUT (VOI LUT Sequence item) in effect, if any */
   voiLUT?: VOILUT;
   /** inverted */
   invert?: boolean;

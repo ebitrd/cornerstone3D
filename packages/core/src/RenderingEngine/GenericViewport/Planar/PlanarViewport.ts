@@ -967,7 +967,7 @@ class PlanarViewport extends GenericViewport<
     displaySetId: string,
     props: Partial<PlanarDataPresentation>
   ): PlanarDataPresentation {
-    // An explicit window request abandons a previously applied tabular VOI
+    // An explicit window request abandons a previously applied VOI
     // LUT (C.11.2); without this, a stored voiLUT would survive the shallow
     // merge and keep overriding every window/level change.
     const nextProps =

@@ -1,5 +1,5 @@
 /**
- * One item of the DICOM VOI LUT Sequence (0028,3010).
+ * A VOI LUT, one item of the DICOM VOI LUT Sequence (0028,3010).
  * https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.11.2.html
  */
 interface VOILUT {

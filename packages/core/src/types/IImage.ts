@@ -97,7 +97,7 @@ interface IImage {
   sizeInBytes: number;
   /** CPU: custom modality LUT for image  */
   modalityLUT?: CPUFallbackLUT;
-  /** Tabular VOI LUT from the image metadata (first VOI LUT Sequence item) */
+  /** VOI LUT from the image metadata (first VOI LUT Sequence item) */
   voiLUT?: VOILUT;
   /** CPU: custom color map for image  */
   colormap?: CPUFallbackColormap;

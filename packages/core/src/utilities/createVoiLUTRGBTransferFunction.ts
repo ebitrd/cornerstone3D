@@ -4,14 +4,14 @@ import type VOILUT from '../types/VOILUT';
 import normalizeVoiLut from './normalizeVoiLut';
 
 /**
- * Builds an RGB transfer function from a tabular VOI LUT (one item of the
+ * Builds an RGB transfer function from a VOI LUT (one item of the
  * DICOM VOI LUT Sequence (0028,3010)).
  *
  * Each sampled LUT entry becomes a grayscale node at
  * x = firstValueMapped + index. vtk clamps to the first/last node outside the
  * mapped range, which matches the standard's clamping semantics.
  *
- * @param voiLUT - Tabular VOI LUT
+ * @param voiLUT - VOI LUT (one VOI LUT Sequence item)
  * @param approximationNodes - Maximum number of nodes; larger LUTs are
  * downsampled (humans can perceive no more than ~900 shades of gray,
  * doi: 10.1007/s10278-006-1052-3)

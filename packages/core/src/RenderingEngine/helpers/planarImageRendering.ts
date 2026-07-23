@@ -151,7 +151,7 @@ export function getDefaultImageVOIRange(image: IImage): VOIRange | undefined {
 }
 
 /**
- * Returns the image's tabular VOI LUT as the default presentation only when
+ * Returns the image's VOI LUT (VOI LUT Sequence item) as the default presentation only when
  * the preferVoiLutFromMetadata config flag opts into it; window values win
  * otherwise, matching the legacy StackViewport behavior.
  */

@@ -784,7 +784,7 @@ class StackViewport extends Viewport {
     if (typeof voiRange !== 'undefined') {
       const voiUpdatedWithSetProperties = true;
 
-      // An explicit window request abandons any active tabular VOI LUT
+      // An explicit window request abandons any active VOI LUT Sequence LUT
       // (C.11.2: window values and the LUT are alternative presentations),
       // and the actor's LUT-shaped transfer function must be rebuilt.
       const hadVoiLUT = !!this.voiLUT && typeof voiLUT === 'undefined';
@@ -1418,7 +1418,7 @@ class StackViewport extends Viewport {
   }
 
   /**
-   * Applies (or clears, when passed null/undefined) a tabular VOI LUT.
+   * Applies (or clears, when passed null/undefined) a VOI LUT (VOI LUT Sequence item).
    * While a LUT is active it replaces the window-based transfer function;
    * voiRange is derived from the LUT's mapped input range so tools and
    * consumers keep a meaningful window to start from.
@@ -1430,7 +1430,7 @@ class StackViewport extends Viewport {
     this.voiLUT = voiLUT || undefined;
 
     if (this.useCPURendering) {
-      // the CPU rendering path applies tabular LUTs natively through its
+      // the CPU rendering path applies VOI LUTs natively through its
       // viewport object (getLut/getVOILut)
       this._cpuFallbackEnabledElement.viewport.voiLUT = voiLUT;
       this.cpuRenderingInvalidated = true;
@@ -1726,7 +1726,7 @@ class StackViewport extends Viewport {
   }
 
   /**
-   * Applies the active tabular VOI LUT as the actor's transfer function.
+   * Applies the active VOI LUT as the actor's transfer function.
    * voiRange is set to the LUT's mapped input range: it has no effect on the
    * rendering while the LUT is active, but gives window-level tools a
    * meaningful starting window when they clear the LUT.

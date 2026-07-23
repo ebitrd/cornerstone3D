@@ -3,7 +3,7 @@ import { mergePlanarLegacyProperties } from '../src/RenderingEngine/GenericViewp
 
 const voiLUT = { firstValueMapped: 100, lut: [0, 128, 255] };
 
-describe('createPlanarRGBTransferFunction with a tabular VOI LUT', () => {
+describe('createPlanarRGBTransferFunction with a VOI LUT Sequence LUT', () => {
   it('builds the transfer function from the LUT nodes', () => {
     const cfun = createPlanarRGBTransferFunction({ voiLUT });
 

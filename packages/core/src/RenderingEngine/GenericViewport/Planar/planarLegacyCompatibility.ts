@@ -193,7 +193,7 @@ export function mergePlanarLegacyProperties(
     merged.colormap = mergePlanarColormap(current.colormap, next.colormap);
   }
 
-  // an explicit window request abandons a previously applied tabular VOI LUT
+  // an explicit window request abandons a previously applied VOI LUT
   if (next.voiRange && next.voiLUT === undefined) {
     delete merged.voiLUT;
   }

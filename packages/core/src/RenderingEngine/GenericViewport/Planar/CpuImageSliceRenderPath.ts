@@ -430,7 +430,7 @@ function applyDataPresentation(
     };
   }
 
-  // tabular VOI LUT: the CPU rendering pipeline applies viewport.voiLUT
+  // VOI LUT (VOI LUT Sequence): the CPU rendering pipeline applies viewport.voiLUT
   // natively (getVOILut); an explicit voiRange request abandons the default
   viewport.voiLUT =
     props?.voiLUT ??

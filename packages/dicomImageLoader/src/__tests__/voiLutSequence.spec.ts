@@ -25,15 +25,29 @@ describe('wadors getLUTs (VOI LUT Sequence)', () => {
     const sequence = makeSequence([
       {
         '00283002': { Value: [3, 100, 16] },
+        '00283003': { Value: ['NORMAL'] },
         '00283006': { Value: [0, 512, 1023] },
       },
     ]);
 
     const [lut] = getLUTs(0, sequence);
 
+    expect(lut.id).toBe('NORMAL');
     expect(lut.firstValueMapped).toBe(100);
     expect(lut.numBitsPerEntry).toBe(16);
     expect(lut.lut).toEqual([0, 512, 1023]);
+  });
+
+  it('falls back to the 1-based item number when LUT Explanation is absent', () => {
+    const sequence = makeSequence([
+      { '00283002': { Value: [1, 0, 8] }, '00283006': { Value: [0] } },
+      { '00283002': { Value: [1, 0, 8] }, '00283006': { Value: [1] } },
+    ]);
+
+    const [first, second] = getLUTs(0, sequence);
+
+    expect(first.id).toBe('1');
+    expect(second.id).toBe('2');
   });
 
   it('decodes 16-bit little-endian InlineBinary LUT data', () => {
