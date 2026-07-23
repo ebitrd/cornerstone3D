@@ -1,4 +1,5 @@
 import type CPUFallbackLUT from './CPUFallbackLUT';
+import type VOILUT from './VOILUT';
 import type {
   PixelDataTypedArray,
   PixelDataTypedArrayString,
@@ -96,8 +97,8 @@ interface IImage {
   sizeInBytes: number;
   /** CPU: custom modality LUT for image  */
   modalityLUT?: CPUFallbackLUT;
-  /** CPU: custom VOI LUT for image  */
-  voiLUT?: CPUFallbackLUT;
+  /** Tabular VOI LUT from the image metadata (first VOI LUT Sequence item) */
+  voiLUT?: VOILUT;
   /** CPU: custom color map for image  */
   colormap?: CPUFallbackColormap;
   /** image scaling metadata - including PT suv values */

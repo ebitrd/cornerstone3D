@@ -32,6 +32,7 @@ import type {
   Point3,
   Scaling,
   StackViewportProperties,
+  VOILUT,
   VOIRange,
   ViewReference,
   VolumeActor,
@@ -52,6 +53,8 @@ import {
 import * as windowLevelUtil from '../utilities/windowLevel';
 import createLinearRGBTransferFunction from '../utilities/createLinearRGBTransferFunction';
 import createSigmoidRGBTransferFunction from '../utilities/createSigmoidRGBTransferFunction';
+import createVoiLUTRGBTransferFunction from '../utilities/createVoiLUTRGBTransferFunction';
+import normalizeVoiLut from '../utilities/normalizeVoiLut';
 import { updateVTKImageDataWithCornerstoneImage } from '../utilities/updateVTKImageDataWithCornerstoneImage';
 import triggerEvent from '../utilities/triggerEvent';
 import { isEqual } from '../utilities/isEqual';
@@ -84,7 +87,7 @@ import pixelToCanvas from './helpers/cpuFallback/rendering/pixelToCanvas';
 import resize from './helpers/cpuFallback/rendering/resize';
 
 import cache from '../cache/cache';
-import { getShouldUseCPURendering } from '../init';
+import { getShouldUseCPURendering, getConfiguration } from '../init';
 import { createProgressive } from '../loaders/ProgressiveRetrieveImages';
 import type {
   StackViewportNewStackEventDetail,
@@ -175,6 +178,7 @@ class StackViewport extends Viewport {
   private sharpening: number = 0;
   private smoothing: number = 0;
   private VOILUTFunction: VOILUTFunctionType;
+  private voiLUT?: VOILUT;
   //
   private invert = false;
   // The initial invert of the image loaded as opposed to the invert status of the viewport itself (see above).
@@ -744,6 +748,7 @@ class StackViewport extends Viewport {
     {
       colormap,
       voiRange,
+      voiLUT,
       VOILUTFunction,
       invert,
       interpolationType,
@@ -761,6 +766,7 @@ class StackViewport extends Viewport {
     this.globalDefaultProperties = {
       colormap: this.globalDefaultProperties.colormap ?? colormap,
       voiRange: this.globalDefaultProperties.voiRange ?? voiRange,
+      voiLUT: this.globalDefaultProperties.voiLUT ?? voiLUT,
       VOILUTFunction:
         this.globalDefaultProperties.VOILUTFunction ?? VOILUTFunction,
       invert: this.globalDefaultProperties.invert ?? invert,
@@ -777,7 +783,24 @@ class StackViewport extends Viewport {
     // which will apply the default voi based on the range
     if (typeof voiRange !== 'undefined') {
       const voiUpdatedWithSetProperties = true;
-      this.setVOI(voiRange, { suppressEvents, voiUpdatedWithSetProperties });
+
+      // An explicit window request abandons any active tabular VOI LUT
+      // (C.11.2: window values and the LUT are alternative presentations),
+      // and the actor's LUT-shaped transfer function must be rebuilt.
+      const hadVoiLUT = !!this.voiLUT && typeof voiLUT === 'undefined';
+      if (hadVoiLUT) {
+        this.voiLUT = undefined;
+      }
+
+      this.setVOI(voiRange, {
+        suppressEvents,
+        voiUpdatedWithSetProperties,
+        forceRecreateLUTFunction: hadVoiLUT,
+      });
+    }
+
+    if (typeof voiLUT !== 'undefined') {
+      this.setVOILUT(voiLUT, suppressEvents);
     }
 
     if (typeof VOILUTFunction !== 'undefined') {
@@ -829,6 +852,7 @@ class StackViewport extends Viewport {
     const {
       colormap,
       voiRange,
+      voiLUT,
       VOILUTFunction,
       interpolationType,
       invert,
@@ -838,6 +862,7 @@ class StackViewport extends Viewport {
     return {
       colormap,
       voiRange,
+      voiLUT,
       VOILUTFunction,
       interpolationType,
       invert,
@@ -889,7 +914,10 @@ class StackViewport extends Viewport {
       voiRange = this._getVOIRangeForCurrentImage();
     }
 
-    this.setVOI(voiRange);
+    const hadVoiLUT = !!this.voiLUT;
+    this.voiLUT = undefined;
+
+    this.setVOI(voiRange, { forceRecreateLUTFunction: hadVoiLUT });
 
     this.setInvertColor(this.initialInvert);
 
@@ -948,7 +976,14 @@ class StackViewport extends Viewport {
       voiRange = properties.voiRange;
     }
 
-    this.setVOI(voiRange);
+    const hadVoiLUT = !!this.voiLUT;
+    this.voiLUT = undefined;
+
+    this.setVOI(voiRange, { forceRecreateLUTFunction: hadVoiLUT });
+
+    if (properties.voiLUT) {
+      this.setVOILUT(properties.voiLUT, true);
+    }
 
     this.setInterpolationType(InterpolationType.LINEAR);
     this.setInvertColor(false);
@@ -1382,6 +1417,31 @@ class StackViewport extends Viewport {
     this.setVOI(voiRange, { suppressEvents, forceRecreateLUTFunction });
   }
 
+  /**
+   * Applies (or clears, when passed null/undefined) a tabular VOI LUT.
+   * While a LUT is active it replaces the window-based transfer function;
+   * voiRange is derived from the LUT's mapped input range so tools and
+   * consumers keep a meaningful window to start from.
+   */
+  private setVOILUT(
+    voiLUT: VOILUT | undefined,
+    suppressEvents?: boolean
+  ): void {
+    this.voiLUT = voiLUT || undefined;
+
+    if (this.useCPURendering) {
+      // the CPU rendering path applies tabular LUTs natively through its
+      // viewport object (getLut/getVOILut)
+      this._cpuFallbackEnabledElement.viewport.voiLUT = voiLUT;
+      this.cpuRenderingInvalidated = true;
+    }
+
+    this.setVOI(this.voiRange, {
+      suppressEvents,
+      forceRecreateLUTFunction: true,
+    });
+  }
+
   private setRotationCPU(rotation: number): void {
     const { viewport } = this._cpuFallbackEnabledElement;
     viewport.rotation = rotation;
@@ -1595,6 +1655,14 @@ class StackViewport extends Viewport {
     }
     const imageActor = defaultActor.actor as ImageActor;
 
+    if (this.voiLUT) {
+      this.setVOILUTGPU(imageActor, {
+        suppressEvents,
+        voiUpdatedWithSetProperties,
+      });
+      return;
+    }
+
     let voiRangeToUse = voiRange;
 
     if (typeof voiRangeToUse === 'undefined') {
@@ -1652,6 +1720,51 @@ class StackViewport extends Viewport {
       viewportId: this.id,
       range: voiRangeToUse,
       VOILUTFunction: this.VOILUTFunction,
+    };
+
+    triggerEvent(this.element, Events.VOI_MODIFIED, eventDetail);
+  }
+
+  /**
+   * Applies the active tabular VOI LUT as the actor's transfer function.
+   * voiRange is set to the LUT's mapped input range: it has no effect on the
+   * rendering while the LUT is active, but gives window-level tools a
+   * meaningful starting window when they clear the LUT.
+   */
+  private setVOILUTGPU(imageActor: ImageActor, options: SetVOIOptions): void {
+    const { suppressEvents = false, voiUpdatedWithSetProperties = false } =
+      options;
+
+    const { firstValueMapped, lastValueMapped } = normalizeVoiLut(this.voiLUT);
+    const voiRangeToUse = { lower: firstValueMapped, upper: lastValueMapped };
+
+    imageActor.getProperty().setUseLookupTableScalarRange(true);
+
+    const transferFunction = createVoiLUTRGBTransferFunction(this.voiLUT);
+
+    if (this.invert) {
+      invertRgbTransferFunction(transferFunction);
+    }
+
+    imageActor.getProperty().setRGBTransferFunction(0, transferFunction);
+    this.initialTransferFunctionNodes =
+      getTransferFunctionNodes(transferFunction);
+
+    this.voiRange = voiRangeToUse;
+
+    if (!this.voiUpdatedWithSetProperties) {
+      this.voiUpdatedWithSetProperties = voiUpdatedWithSetProperties;
+    }
+
+    if (suppressEvents) {
+      return;
+    }
+
+    const eventDetail: VoiModifiedEventDetail = {
+      viewportId: this.id,
+      range: voiRangeToUse,
+      VOILUTFunction: this.VOILUTFunction,
+      voiLUT: this.voiLUT,
     };
 
     triggerEvent(this.element, Events.VOI_MODIFIED, eventDetail);
@@ -2697,6 +2810,14 @@ class StackViewport extends Viewport {
       this.setVOI(voiRange, {
         forceRecreateLUTFunction: !!monochrome1,
       });
+
+      if (
+        getConfiguration().rendering?.preferVoiLutFromMetadata &&
+        image.voiLUT &&
+        !this.voiUpdatedWithSetProperties
+      ) {
+        this.setVOILUT(image.voiLUT, true);
+      }
 
       this.initialInvert = !!monochrome1;
 

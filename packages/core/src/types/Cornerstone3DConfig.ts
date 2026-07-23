@@ -51,6 +51,15 @@ interface Cornerstone3DConfig {
     strictZSpacingForVolumeViewport?: boolean;
 
     /**
+     * When an image carries a tabular VOI LUT (VOI LUT Sequence) in its
+     * metadata, apply it as the default grayscale presentation instead of the
+     * window width/center values. When false (default), window values win and
+     * the LUT can still be applied explicitly via
+     * `viewport.setProperties({ voiLUT })`. Stack viewports only.
+     */
+    preferVoiLutFromMetadata?: boolean;
+
+    /**
      * The rendering engine mode to use.
      * 'contextPool' is the a rendering engine that uses sequential rendering, pararllization and has enhanced support/performance for multi-monitor and high resolution displays.
      * 'tiled' is a rendering engine that uses tiled rendering.
