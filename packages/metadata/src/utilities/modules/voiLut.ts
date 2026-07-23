@@ -6,4 +6,5 @@ export const tags: ModuleTagEntry[] = [
   'WindowWidth',
   'VOILUTFunction',
   'WindowCenterWidthExplanation',
+  'VOILUTSequence',
 ];

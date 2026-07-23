@@ -42,7 +42,7 @@ export default function createVoiLUTRGBTransferFunction(
   const cfun = vtkColorTransferFunction.newInstance();
   cfun.buildFunctionFromArray(
     vtkDataArray.newInstance({
-      values: table,
+      values: Float64Array.from(table),
       numberOfComponents: 6,
     })
   );

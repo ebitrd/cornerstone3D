@@ -10,6 +10,8 @@ import metaDataManager, {
   retrieveMultiframeMetadataImageId,
 } from '../metaDataManager';
 import getValue from './getValue';
+import getLUTs from './getLUTs';
+import getModalityLUTOutputPixelRepresentation from './getModalityLUTOutputPixelRepresentation';
 import {
   getMultiframeInformation,
   getFrameInformation,
@@ -257,11 +259,17 @@ function metaDataProvider(type, imageId) {
   }
 
   if (type === MetadataModules.VOI_LUT) {
+    const modalityLUTOutputPixelRepresentation =
+      getModalityLUTOutputPixelRepresentation(metaData);
+
     return {
       windowCenter: getNumberValues(metaData['00281050'], 1),
       windowWidth: getNumberValues(metaData['00281051'], 1),
       voiLUTFunction: getValue(metaData['00281056']),
-      // TODO VOT LUT Sequence
+      voiLUTSequence: getLUTs(
+        modalityLUTOutputPixelRepresentation,
+        metaData['00283010']
+      ),
     };
   }
 

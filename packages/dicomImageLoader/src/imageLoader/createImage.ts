@@ -114,7 +114,7 @@ async function createImage(
   return new Promise<DICOMLoaderIImage | Types.IImageFrame>(
     (resolve, reject) => {
       // eslint-disable-next-line complexity
-      decodePromise.then(function (imageFrame: Types.IImageFrame) {
+      decodePromise.then(async function (imageFrame: Types.IImageFrame) {
         // If we have a target buffer that was written to in the
         // Decode task, point the image to it here.
         let alreadyTyped = false;
@@ -485,7 +485,28 @@ async function createImage(
           voiLutModule.voiLUTSequence &&
           voiLutModule.voiLUTSequence.length > 0
         ) {
-          image.voiLUT = voiLutModule.voiLUTSequence[0];
+          const voiLUTItem = voiLutModule.voiLUTSequence[0];
+
+          // wado-rs metadata may reference the LUT Data as bulkdata; resolve
+          // it here so consumers always see a fully populated LUT. A fetch
+          // failure only loses the LUT, never the image.
+          if (
+            !voiLUTItem.lut?.length &&
+            typeof voiLUTItem.retrieveBulkData === 'function'
+          ) {
+            try {
+              voiLUTItem.lut = await voiLUTItem.retrieveBulkData();
+            } catch (error) {
+              console.warn(
+                'Failed to retrieve VOI LUT bulkdata, ignoring the VOI LUT',
+                error
+              );
+            }
+          }
+
+          if (voiLUTItem.lut?.length) {
+            image.voiLUT = voiLUTItem;
+          }
         }
 
         if (image.color) {
