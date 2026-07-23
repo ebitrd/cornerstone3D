@@ -4,8 +4,9 @@ import type { LutType } from '../../../types';
 function getLUT(pixelRepresentation: number, lutDataSet: DataSet): LutType {
   let numLUTEntries = lutDataSet.uint16('x00283002', 0);
 
+  // Per the LUT Descriptor definition, a first value of 0 means 2^16 entries
   if (numLUTEntries === 0) {
-    numLUTEntries = 65535;
+    numLUTEntries = 65536;
   }
   let firstValueMapped = 0;
 
