@@ -8,6 +8,7 @@ import type IImage from './IImage';
 import type IImageVolume from './IImageVolume';
 import type { VOIRange } from './voi';
 import type VOILUTFunctionType from '../enums/VOILUTFunctionType';
+import type VOILUT from './VOILUT';
 import type ViewportStatus from '../enums/ViewportStatus';
 import type DisplayArea from './displayArea';
 import type IImageCalibration from './IImageCalibration';
@@ -60,6 +61,8 @@ interface VoiModifiedEventDetail {
   volumeId?: string;
   /** VOILUTFunction */
   VOILUTFunction?: VOILUTFunctionType;
+  /** Tabular VOI LUT in effect, if any */
+  voiLUT?: VOILUT;
   /** inverted */
   invert?: boolean;
   /** Indicates if the 'invert' state has changed from the previous state */

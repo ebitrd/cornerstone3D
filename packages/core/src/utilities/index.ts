@@ -1,6 +1,7 @@
 import * as eventListener from './eventListener';
 import csUtils from './invertRgbTransferFunction';
 import createSigmoidRGBTransferFunction from './createSigmoidRGBTransferFunction';
+import normalizeVoiLut from './normalizeVoiLut';
 import getVoiFromSigmoidRGBTransferFunction from './getVoiFromSigmoidRGBTransferFunction';
 import createLinearRGBTransferFunction from './createLinearRGBTransferFunction';
 import scaleRgbTransferFunction from './scaleRgbTransferFunction';
@@ -153,6 +154,7 @@ export {
   eventListener,
   csUtils as invertRgbTransferFunction,
   createSigmoidRGBTransferFunction,
+  normalizeVoiLut,
   getVoiFromSigmoidRGBTransferFunction,
   createLinearRGBTransferFunction,
   scaleRgbTransferFunction,

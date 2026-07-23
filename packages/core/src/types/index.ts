@@ -87,6 +87,7 @@ import type CPUFallbackColormap from './CPUFallbackColormap';
 import type TransformMatrix2D from './TransformMatrix2D';
 import type CPUFallbackLookupTable from './CPUFallbackLookupTable';
 import type CPUFallbackLUT from './CPUFallbackLUT';
+import type VOILUT from './VOILUT';
 import type CPUFallbackRenderingTools from './CPUFallbackRenderingTools';
 import type { IVolumeInput, VolumeInputCallback } from './IVolumeInput';
 import type { IStackInput, StackInputCallback } from './IStackInput';
@@ -271,6 +272,7 @@ export type {
   TransformMatrix2D,
   CPUFallbackLookupTable,
   CPUFallbackLUT,
+  VOILUT,
   CPUFallbackRenderingTools,
   //
   CustomEventType,
