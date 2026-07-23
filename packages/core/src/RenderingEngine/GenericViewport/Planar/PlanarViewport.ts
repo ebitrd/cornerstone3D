@@ -963,6 +963,21 @@ class PlanarViewport extends GenericViewport<
     super.setDataPresentationState(dataId, props);
   }
 
+  protected override mergeDataPresentation(
+    displaySetId: string,
+    props: Partial<PlanarDataPresentation>
+  ): PlanarDataPresentation {
+    // An explicit window request abandons a previously applied tabular VOI
+    // LUT (C.11.2); without this, a stored voiLUT would survive the shallow
+    // merge and keep overriding every window/level change.
+    const nextProps =
+      props.voiRange && !('voiLUT' in props)
+        ? { ...props, voiLUT: undefined }
+        : props;
+
+    return super.mergeDataPresentation(displaySetId, nextProps);
+  }
+
   /**
    * Returns the current rotation angle in degrees.
    */
